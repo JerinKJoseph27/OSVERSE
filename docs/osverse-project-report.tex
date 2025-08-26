@@ -18,6 +18,7 @@
 \usepackage{tocloft}
 \usepackage{caption}
 \usepackage{graphicx}
+\usepackage{grffile} % allow spaces in image filenames
 \usepackage{float}
 \usepackage{booktabs}
 \usepackage{array}
@@ -223,9 +224,17 @@ Operating Systems (OS) are the backbone of modern computing, responsible for man
 The study of CPU scheduling is a foundational topic in computer science curricula. However, traditional teaching methods—such as static diagrams, textbook examples, and classroom lectures—often fail to convey the dynamic and interactive nature of scheduling decisions. Concepts like preemption, context switching, starvation, and fairness are best understood through visualization and experimentation. This gap in pedagogy motivated the creation of OSVerse: a platform designed to make scheduling algorithms tangible, interactive, and engaging for learners.
 
 \section*{Project Vision}
+OSVerse aims to revolutionize the way CPU scheduling is taught and learned by pairing accurate algorithm engines with rich, interactive visualizations and optional AR experiences. The vision emphasizes:
+\begin{itemize}
+  \item \textbf{Hands-on learning:} Empower learners to tweak inputs, step through time, and observe cause–effect relationships. Try the \href{https://osverse.shreyjain.me/algorithms}{Algorithms index}.
+  \item \textbf{Visual-first explanations:} Use animated Gantt charts, queue views, and legends to make preemption, context switching, and waiting time intuitive. See \href{https://osverse.shreyjain.me/fcfs}{FCFS} and \href{https://osverse.shreyjain.me/round-robin}{Round Robin}.
+  \item \textbf{Breadth and depth:} Cover classical and advanced algorithms (FCFS, SJF/SRTF, Priority, RR, HRRN, LJF, Lottery, Fair Share, EDF, MLQ, MLFQ), each with examples and edge cases. Browse \href{\githubURL}{source code}.
+  \item \textbf{Immersive AR:} Export timelines to GLB for spatial inspection on devices that support AR. Open the \href{https://osverse.shreyjain.me/ar-viewer}{AR Viewer}.
+  \item \textbf{Accessibility:} Favor keyboard navigation, readable color palettes, and responsive layouts; iterate toward WCAG conformance. Read \href{https://www.w3.org/WAI/standards-guidelines/wcag/}{WCAG}.
+  \item \textbf{Extensibility:} Keep components modular so new algorithms and views can be added without refactoring. See the \href{https://github.com/shreyjain14/osverse-final/tree/master/src/components}{Component library}.
+\end{itemize}
 
-
-The project is a collaborative effort by undergraduate students, guided by faculty and supported by the open-source community. OSVerse is built with Next.js, TypeScript, and Tailwind CSS, and is available as a live website and open-source repository.
+The project is a collaborative effort by undergraduate students, guided by faculty and supported by the open-source community. OSVerse is built with Next.js, TypeScript, and Tailwind CSS, and is available as a \href{\projectURL}{live website} and \href{\githubURL}{open-source repository}.
 
 \section*{Structure of the Report}
 This report is organized to provide a comprehensive overview of OSVerse, from its conception and design to implementation, testing, and future directions. Each chapter delves into specific aspects of the project, ensuring that readers gain both theoretical and practical insights into the development and impact of the platform.
@@ -252,7 +261,27 @@ Multiple teaching aids exist: printed examples in textbooks, slide decks, Java a
 OSVerse is designed to bridge these gaps with a modular, accessible, web-native platform that is easily deployable and extensible.
 
 \section{Objectives}
-Design and implement a web-native, extensible, and accessible platform that visualizes multiple CPU scheduling algorithms through synchronized animations and charts, and optionally exports AR-ready 3D timelines, to improve learner comprehension and engagement.
+The objectives of OSVerse are expansive, spanning pedagogy, engineering quality, and long-term sustainability. Concretely, OSVerse strives to:
+\begin{itemize}
+  \item \textbf{Improve learning outcomes:} Communicate scheduling concepts clearly with animated, annotated visualizations and side-by-side comparisons. Explore the \href{https://osverse.shreyjain.me/algorithms}{Algorithm Catalogue}.
+  \item \textbf{Enable experimentation:} Let users construct scenarios, adjust algorithm parameters, replay executions, and export/share results. See \href{https://osverse.shreyjain.me/round-robin}{RR Demo}.
+  \item \textbf{Guarantee correctness:} Implement algorithms faithfully with unit/integration tests and cross-checks against textbook examples.
+  \item \textbf{Be accessible by default:} Design keyboard-first flows, color-contrast aware styles, and ARIA-friendly structures; track improvements with \href{https://www.deque.com/axe/}{axe} and \href{https://developers.google.com/web/tools/lighthouse}{Lighthouse}.
+  \item \textbf{Scale performance:} Keep animations smooth and CPU usage modest on mainstream hardware.
+  \item \textbf{Support AR exports:} Provide one-click GLB downloads for AR review; evolve toward real-time overlays. Try the \href{https://osverse.shreyjain.me/ar-viewer}{AR Viewer}.
+  \item \textbf{Foster community:} Welcome issues, discussions, and PRs; document extension points and data contracts. Join \href{https://github.com/shreyjain14/osverse-final/issues}{Discussions}.
+\end{itemize}
+
+\noindent\textbf{Future Additions and Roadmap}
+\begin{itemize}
+  \item \textbf{Multi-core and distributed scheduling:} Simulate cores/queues, work stealing, NUMA effects. Background: \href{https://en.wikipedia.org/wiki/Scheduling_(computing)}{Scheduling}.
+  \item \textbf{Real-time/embedded:} EDF, RM, DM, priority inheritance/ceiling; deadline miss diagnostics. Start at \href{https://osverse.shreyjain.me/edf}{EDF}.
+  \item \textbf{Persistence and sharing:} Save scenarios, permalinks, and class sets; teacher dashboards. Candidate backend: \href{https://firebase.google.com/}{Firebase}.
+  \item \textbf{Analytics and research:} Batch runs, CSV/JSON exports, statistical summaries, and ML-guided scheduling experiments.
+  \item \textbf{Accessibility upgrades:} Localization, captions/tooltips, optional textual transcripts of animations.
+  \item \textbf{AR collaboration:} Multi-user sessions and annotations in shared AR spaces. Learn \href{https://www.w3.org/TR/webxr/}{WebXR}.
+  \item \textbf{Curriculum kits:} Lesson plans, quizzes, and rubrics aligned to OS syllabi. See \href{https://www.os-book.com}{OS Texts}.
+\end{itemize}
 
 \section{Purpose, Scope and Applicability}
 \subsection{Purpose}
@@ -288,27 +317,34 @@ In addition to these core challenges, OSVerse aims to support advanced research 
 \section{Requirements Specification}
 \subsection*{Functional Requirements}
 \begin{enumerate}
-  \item Accept process inputs: arrival time, burst time, and priority (where applicable).
+  \item Accept process inputs: arrival time, burst time, and priority (where applicable); support batch entry and CSV import/export.
   \item Compute schedules for FCFS, SJF (preemptive/non-preemptive), Priority (preemptive/non-preemptive), Round Robin, HRRN, LJF, Lottery, Fair Share, EDF, MLQ, and MLFQ.
-  \item Render animated Gantt charts and legends; provide play/pause, speed control, and reset.
-  \item Provide summary metrics: waiting time (WT), turnaround time (TAT), and their averages.
-  \item Export Gantt data to a downloadable GLB model for AR viewing.
+  \item Render animated/static Gantt charts, queue views, and legends; provide play/pause, speed control, and reset.
+  \item Provide per-process and aggregate metrics (finish, TAT, WT, response time) and summary statistics.
+  \item Export Gantt data to a downloadable GLB model for AR viewing; include basic labeling and scale cues in the model.
+  \item Offer scenario save/load, permalink sharing (future), and printable summaries (future).
 \end{enumerate}
 
 \subsection*{Non-Functional Requirements}
 \begin{itemize}
-  \item \textbf{Correctness:} Visuals must accurately reflect algorithm logic.
-  \item \textbf{Performance:} Smooth animations at typical frame rates on mainstream laptops/mobile devices.
-  \item \textbf{Accessibility:} Keyboard navigation, sufficient color contrast, ARIA labels where practical.
-  \item \textbf{Compatibility:} Support modern Chromium-based browsers, Safari, and Firefox; progressive degradation for limited WebXR.
-  \item \textbf{Extensibility:} Modular components to add new algorithms and visualizations easily.
+  \item \textbf{Correctness:} Visuals must accurately reflect algorithm logic; cross-validate results against known datasets.
+  \item \textbf{Performance:} Smooth animations (target 60 FPS where feasible) on mainstream laptops/mobile devices.
+  \item \textbf{Accessibility:} Keyboard navigation, sufficient color contrast, ARIA labels; WCAG-informed content.
+  \item \textbf{Compatibility:} Support modern Chromium-based browsers, Safari, and Firefox; graceful fallback if WebXR is unavailable.
+  \item \textbf{Extensibility:} Modular components to add new algorithms and visualizations easily; documented data contracts.
 \end{itemize}
+
+\subsection*{Assumptions and Dependencies}
+Single-CPU time-sliced model, discrete time units, deterministic inputs. Dependencies include Next.js, React, Tailwind CSS, Recharts, and glTF-Transform.
+
+\subsection*{Primary Use Cases}
+UC1: Student explores SJF vs RR trade-offs. UC2: Instructor demonstrates starvation under fixed priorities and mitigation via aging. UC3: Researcher exports timelines for AR demo and paper figures.
 
 \begin{table}[H]
   \centering
   \caption{Key Requirements Summary}
   \begin{tabular}{p{0.28\textwidth} p{0.62\textwidth}}
-    	oprule
+  	oprule
     Category & Examples \\
     \midrule
     Functional & Input processes, compute schedules, animate Gantt, export AR model \\
@@ -319,13 +355,13 @@ In addition to these core challenges, OSVerse aims to support advanced research 
 \end{table}
 
 \section{Block Diagram}
-Figure~\ref{fig:block} depicts the high-level data flow from user inputs to algorithm engines, to visual renderers and AR export.
+Figure~\ref{fig:block} depicts the high-level data flow from user inputs to algorithm engines, to visual renderers and AR export. Inputs (processes and parameters) drive the scheduling engine, which emits a normalized schedule consumed by both on-screen charts and the AR exporter. App state (React) persists user edits and preferences across interactions.
 
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}[node distance=2.2cm,>=latex]
-    	ikzstyle{block}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.2cm, minimum height=1.1cm]
-    	ikzstyle{arrow}=[->, thick]
+  	ikzstyle{block}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.2cm, minimum height=1.1cm]
+  	ikzstyle{arrow}=[->, thick]
 
     \node[block, fill=blue!8] (ui) {Process Inputs\\(UI Forms)};
     \node[block, right of=ui, xshift=3.2cm, fill=green!8] (alg) {Algorithm Engines\\(FCFS/SJF/RR/etc.)};
@@ -346,7 +382,7 @@ Figure~\ref{fig:block} depicts the high-level data flow from user inputs to algo
 
 \section{System Requirements}
 \subsection{User Characteristics}
-Primary users are undergraduate CS students, educators, and enthusiasts. Users are expected to be comfortable with web UIs and possess basic OS concepts.
+Primary users are undergraduate CS students, educators, and enthusiasts. Advanced users include researchers and developers who wish to construct large scenarios or integrate OSVerse into teaching workflows.
 
 \subsection{Software and Hardware Requirements}
 \begin{table}[H]
@@ -385,49 +421,25 @@ Primary users are undergraduate CS students, educators, and enthusiasts. Users a
   \item Camera permission (for AR) must be granted by the browser.
   \item WebXR availability varies by browser/device; AR export via GLB provides a fallback.
   \item Mobile performance constraints necessitate efficient animations.
+  \item Network connectivity is required for AR model downloads and live demos.
+  \item Device storage may limit very large GLB exports; include model size warnings (future).
 \end{itemize}
 
 \section{Conceptual Models}
 \subsection{Data Flow Diagram}
-Figure~\ref{fig:dfd0} shows the Level-0 context diagram. Figure~\ref{fig:dfd1} expands scheduling computation and visualization.
+Figure~\ref{fig:dfd0} shows the Level-0 context diagram (user ↔ OSVerse). Figure~\ref{fig:dfd1} expands scheduling computation and visualization, clarifying interfaces between input forms, computation, visualization, and AR export modules.
 
 \begin{figure}[H]
   \centering
-  \begin{tikzpicture}[node distance=2.2cm]
-    	ikzstyle{ext}=[ellipse, draw=black!60, minimum width=2.6cm, align=center]
-    	ikzstyle{proc}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.6cm, minimum height=1cm]
-    	ikzstyle{data}=[rectangle, draw=black!40, dashed, align=center, minimum width=3.0cm]
-    	ikzstyle{arrow}=[->]
-
-    \node[ext] (user) {User};
-    \node[proc, right=3.8cm of user] (osv) {OSVerse System};
-    \node[data, below=1.8cm of osv] (views) {Charts, Metrics, AR Model};
-
-    \draw[arrow] (user) -- node[above]{Inputs} (osv);
-    \draw[arrow] (osv) -- node[right]{Outputs} (views);
-    \draw[arrow] (views) -- ++(-3.6,0) |- node[left]{Rendered UI} (user);
-  \end{tikzpicture}
-  \caption{DFD Level-0: OSVerse as a single process.}
+  \includegraphics[width=\textwidth]{images/10 dfd0.png}
+  \caption{DFD Level-0 (Context): OSVerse as a single process interacting with the User.}
   \label{fig:dfd0}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \begin{tikzpicture}[node distance=1.8cm,>=latex]
-    	ikzstyle{proc}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.6cm, minimum height=1cm]
-    	ikzstyle{data}=[rectangle, draw=black!40, dashed, align=center, minimum width=3.0cm]
-    	ikzstyle{arrow}=[->]
-
-    \node[proc] (input) {Input Forms};
-    \node[proc, right=2.6cm of input] (alg) {Scheduling Engine};
-    \node[proc, right=2.6cm of alg] (viz) {Gantt/Animation};
-    \node[proc, below=1.4cm of alg] (ar) {AR Export (GLB)};
-
-    \draw[arrow] (input) -- node[above]{Processes, Params} (alg);
-    \draw[arrow] (alg) -- node[above]{Schedule} (viz);
-    \draw[arrow] (alg) -- node[right]{Gantt Data} (ar);
-  \end{tikzpicture}
-  \caption{DFD Level-1: Core process breakdown.}
+  \includegraphics[width=\textwidth]{images/11 dfd l1.png}
+  \caption{DFD Level-1 (Core processes): Input \\& Validation, Scheduling Engine, Visualization, and AR Export.}
   \label{fig:dfd1}
 \end{figure}
 
@@ -448,8 +460,8 @@ Figure~\ref{fig:arch} illustrates the architecture.
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}[node distance=1.8cm,>=latex]
-    	ikzstyle{blk}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.6cm, minimum height=1cm]
-    	ikzstyle{arrow}=[->, thick]
+  	ikzstyle{blk}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.6cm, minimum height=1cm]
+  	ikzstyle{arrow}=[->, thick]
 
     \node[blk, fill=blue!8] (pages) {Next.js Pages\\(Algorithm Routes)};
     \node[blk, below of=pages, fill=green!8] (components) {Components\\(Charts, Tables, Animations)};
@@ -466,6 +478,7 @@ Figure~\ref{fig:arch} illustrates the architecture.
 \end{figure}
 
 \section{Module Design}
+Beyond the core pages and charts, the project includes a UI kit (buttons, inputs, forms) and animation utilities. Modules communicate via typed props and shared data shapes (e.g., GanttEntry, Process), simplifying reuse and testing.
 \begin{table}[H]
   \centering
   \caption{Module Overview}
@@ -550,7 +563,43 @@ function calculateFCFS(processes: Process[]): SchedulingResult {
 \end{lstlisting}
 
 \subsection*{Round Robin Scheduling}
-\begin{lstlisting}[language=JavaScript, caption={Round Robin calculation (excerpt from \texttt{src/app/round-robin/page.tsx}).}]
+\subsection*{SJF (Non-preemptive) Scheduling}
+\begin{lstlisting}[language=JavaScript, caption={SJF (non-preemptive) calculation (excerpt).}]
+function calculateSJF(processes: Process[]): SchedulingResult {
+  const procs = processes.map((p, i) => ({ ...p, idx: i }));
+  let time = 0; const done = new Set<number>(); const gantt: GanttEntry[] = [];
+  const finish: number[] = Array(procs.length).fill(0);
+  while (done.size < procs.length) {
+    const ready = procs.filter((p) => !done.has(p.idx) && p.arrival <= time);
+    if (ready.length === 0) { time++; continue; }
+    ready.sort((a,b) => a.burst - b.burst || a.arrival - b.arrival);
+    const p = ready[0]; const start = time; time += p.burst; finish[p.idx] = time;
+    gantt.push({ name: p.name, start, end: time }); done.add(p.idx);
+  }
+  const results = procs.map((p) => ({ ...p, finish: finish[p.idx], tat: finish[p.idx]-p.arrival, wt: finish[p.idx]-p.arrival-p.burst }));
+  const avgTAT = (results.reduce((s,r)=>s+r.tat,0)/procs.length).toFixed(2);
+  const avgWT = (results.reduce((s,r)=>s+r.wt,0)/procs.length).toFixed(2);
+  return { results, avgTAT, avgWT, gantt };
+}
+\end{lstlisting}
+
+\subsection*{Preemptive Priority (Excerpt)}
+\begin{lstlisting}[language=JavaScript, caption={Priority (preemptive) selection loop (excerpt).}]
+// pick highest priority (lower number = higher priority), preempt on arrival
+while (completed < n) {
+  const candidates = indices.filter(i => rem[i] > 0 && processes[i].arrival <= time);
+  if (candidates.length === 0) { time++; continue; }
+  candidates.sort((a,b) => processes[a].priority - processes[b].priority || processes[a].arrival - processes[b].arrival);
+  const cur = candidates[0];
+  gantt.push({ name: processes[cur].name, start: time, end: time+1 });
+  rem[cur]--; time++;
+  if (rem[cur] === 0) { finish[cur] = time; completed++; }
+}
+\end{lstlisting}
+
+\subsection*{Performance and State}
+State is lifted to route-level components, minimizing prop drilling. Animation loops throttle updates to balance clarity and FPS, and large scenarios degrade gracefully by collapsing contiguous slices in the Gantt.
+\begin{lstlisting}[caption={Round Robin calculation (excerpt from \texttt{src/app/round-robin/page.tsx}).}]
 function calculateRR(processes: Process[], quantum: number): SchedulingResult {
   let time = 0, queue: number[] = [], gantt: GanttEntry[] = [];
   const n = processes.length, rem = processes.map(p => p.burst);
@@ -572,7 +621,7 @@ function calculateRR(processes: Process[], quantum: number): SchedulingResult {
 \end{lstlisting}
 
 \subsection*{Animated Gantt Rendering}
-\begin{lstlisting}[language=JavaScript, caption={Animated Gantt chart (excerpt from \texttt{src/components/AnimatedGanttChart.tsx}).}]
+\begin{lstlisting}[caption={Animated Gantt chart (excerpt from \texttt{src/components/AnimatedGanttChart.tsx}).}]
 const AnimatedGanttChart: React.FC<AnimatedGanttChartProps> = ({ gantt, colorScheme, algorithm = "Scheduling" }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -583,7 +632,7 @@ const AnimatedGanttChart: React.FC<AnimatedGanttChartProps> = ({ gantt, colorSch
 \end{lstlisting}
 
 \subsection*{AR Export API}
-\begin{lstlisting}[language=JavaScript, caption={API route generating GLB from Gantt data (excerpt from \texttt{src/app/api/gantt-model/route.ts}).}]
+\begin{lstlisting}[caption={API route generating GLB from Gantt data (excerpt from \texttt{src/app/api/gantt-model/route.ts}).}]
 export async function GET(req: NextRequest) {
   const gantt = JSON.parse(req.nextUrl.searchParams.get('data')!);
   const doc = new Document(); doc.createBuffer(); const scene = doc.createScene('Gantt');
@@ -597,7 +646,85 @@ export async function GET(req: NextRequest) {
 \end{lstlisting}
 
 \section{Screen Shots}
-Figures for representative algorithm pages, animated Gantt charts, and AR download UI should be inserted close to the relevant text when available. Captions should follow the specified 10pt style.
+This section presents key UI screens of OSVerse with brief explanations. Figures are hyperlinked to relevant live routes wherever applicable. All images are in \texttt{docs/images} and were captured from the deployed app at \href{\projectURL}{\projectURL}.
+
+% Home page (01–03)
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/01 home page.png}
+  \caption{Home page (1/3): Landing view with project title, value proposition, and quick access to algorithms.}
+  \label{fig:home1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/02 home page.png}
+  \caption{Home page (2/3): Feature highlights including interactive Gantt charts and AR export.}
+  \label{fig:home2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/03 home page.png}
+  \caption{Home page (3/3): Call-to-action links to the \href{\projectURL/algorithms}{Algorithms} catalogue and documentation.}
+  \label{fig:home3}
+\end{figure}
+
+The home page introduces OSVerse, outlines capabilities (interactive scheduling, animations, AR), and directs users to the algorithms index for hands-on exploration.
+
+% Algorithms list (04–06)
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/04 algorithms page.png}
+  \caption{Algorithms catalogue (1/3): Grid of available algorithms with brief descriptions. Open at \href{\projectURL/algorithms}{/algorithms}.}
+  \label{fig:algos1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/05 a few more algorithms.png}
+  \caption{Algorithms catalogue (2/3): Additional classic strategies (FCFS, SJF, Priority) and their learning goals.}
+  \label{fig:algos2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/06 a few more algotithms.png}
+  \caption{Algorithms catalogue (3/3): Advanced strategies (HRRN, LJF, Lottery, Fair Share, EDF, MLQ, MLFQ).}
+  \label{fig:algos3}
+\end{figure}
+
+The catalogue organizes algorithms with consistent cards linking to route-level pages (e.g., \href{\projectURL/fcfs}{/fcfs}, \href{\projectURL/round-robin}{/round-robin}). Each page shares a common template for inputs, results, and visualizations.
+
+% FCFS page (07)
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/07 fcfs page.png}
+  \caption{FCFS page: Process input table and controls to add, edit, and validate processes. Open at \href{\projectURL/fcfs}{/fcfs}.}
+  \label{fig:fcfs-input}
+\end{figure}
+
+The FCFS page illustrates the shared interaction model used across algorithms: a process table for arrival/burst/priority (if applicable), a calculate action, and result summaries (finish time, TAT, WT, averages).
+
+% FCFS animated Gantt (08)
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/08 fcfs ganttchart.png}
+  \caption{FCFS animated Gantt: Time-based visualization with legend and playback controls.}
+  \label{fig:fcfs-gantt}
+\end{figure}
+
+The animated Gantt chart renders execution segments per process, highlights idle intervals, and supports play/pause and speed adjustments. For algorithms like Round Robin, the chart exposes preemption points and time slicing.
+
+% AR viewer (09)
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{images/09 ar view page.png}
+  \caption{AR Viewer: Screen providing QR code/controls to download the GLB model and open it in a device AR viewer. Open at \href{\projectURL/ar-viewer}{/ar-viewer}.}
+  \label{fig:ar-view}
+\end{figure}
+
+The AR viewer routes Gantt data to the serverless exporter, producing a \texttt{.glb} model with labeled bars and scale markers. Scanning the QR code or downloading directly allows inspection in supported AR apps.
 
 %---------------------
 % Chapter 5: Testing
@@ -626,6 +753,12 @@ AR Export & GLB downloads successfully; can be viewed in device AR viewer. \\
   \item \textbf{Integration tests:} Pages render and compute results; AR route returns GLB for valid input.
 \end{itemize}
 
+\subsection*{Edge Cases}
+Empty input set; simultaneous arrivals; zero/very large burst times; equal priorities; tiny vs large quantum; long idle gaps; non-integer times (rounded for display).
+
+\subsection*{Manual QA Protocol}
+Cross-browser verification (Chrome, Firefox, Safari), keyboard-only navigation passes, color-contrast checks, and AR export sanity checks on mobile.
+
 \section{Test Reports}
 Sample FCFS input: P1(0,4), P2(2,3), P3(6,2). Observed output: Avg TAT and WT match computed values; Gantt blocks appear in sequence with idle gaps if any. Round Robin sample: four processes with quantum=2 yield interleaved bars and expected averages.
 
@@ -645,9 +778,19 @@ Key challenges included:
 \end{itemize}
 
 \section{Advantages and Limitations}
-	extbf{Advantages:} Web-native, no install; broad algorithm coverage; interactive animations; AR augmentation; modular architecture.
+	extbf{Advantages:}
+\begin{itemize}
+  \item Web-native, no install; fast to access and share.
+  \item Broad algorithm coverage, modular design, and typed data contracts.
+  \item Rich, accessible visualizations; optional AR augmentation.
+\end{itemize}
 
-	extbf{Limitations:} No backend persistence yet; limited automated tests; AR support varies by device; advanced algorithms (e.g., EDF/MLFQ) require rigorous validation for edge cases.
+	extbf{Limitations:}
+\begin{itemize}
+  \item No backend persistence yet; collaboration features pending.
+  \item Limited automated tests; full suite planned.
+  \item AR support varies by device/browser; GLB size constraints.
+\end{itemize}
 
 \section{Future Scope of the Project}
 Potential enhancements include saved scenarios and sharing, collaborative editing, printable PDF reports, accessibility audits, a11y annotations in charts, additional OS modules (deadlocks, memory management), and expanded AR interactions.
@@ -782,7 +925,7 @@ Development proceeded in iterative milestones: core UI, FCFS baseline, RR with a
 % References (numbered, single-spaced entries, double-spaced between)
 %---------------------
 \clearpage
-\renewcommand\refname{References}
+\renewcommand\bibname{References}
 \begin{thebibliography}{99}
 \setlength{\itemsep}{\baselineskip} % double space between entries
 \setlength{\parsep}{0pt}
