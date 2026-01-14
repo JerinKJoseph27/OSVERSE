@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🚀 Live Demo
+
+View the live application: **[https://osverse-two.vercel.app/](https://osverse-two.vercel.app/)**
+
 ## Getting Started
 
 First, run the development server:
@@ -31,6 +35,28 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project is deployed on Vercel. To deploy your own instance:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Steps to Deploy:
+
+1. **Push your code to GitHub** (or GitLab/Bitbucket)
+   ```bash
+   git add .
+   git commit -m "Your commit message"
+   git push origin main
+   ```
+
+2. **Import to Vercel:**
+   - Go to [Vercel](https://vercel.com/new)
+   - Click "Import Project"
+   - Select your Git repository
+   - Vercel will auto-detect Next.js settings
+
+3. **Deploy:**
+   - Click "Deploy"
+   - Your app will be live in minutes with a unique URL
+   - Every push to your main branch auto-deploys
+
+### Additional Resources:
+- [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying)
+- [Vercel Documentation](https://vercel.com/docs)
