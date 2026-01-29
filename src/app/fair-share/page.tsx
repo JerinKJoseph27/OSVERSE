@@ -34,43 +34,82 @@ function calculateFairShare(processes: Process[]): SchedulingResult {
   let tat = Array(n).fill(0);
   let wt = Array(n).fill(0);
   let totalTAT = 0, totalWT = 0;
-  // Group processes by group
+  
+  // Group processes by group and track CPU usage per group
   const groupMap: { [group: string]: number[] } = {};
+  const groupCpuUsage: { [group: string]: number } = {};
+  
   processes.forEach((p, i) => {
     const group = p.group || "default";
-    if (!groupMap[group]) groupMap[group] = [];
+    if (!groupMap[group]) {
+      groupMap[group] = [];
+      groupCpuUsage[group] = 0;
+    }
     groupMap[group].push(i);
   });
+  
   const groupNames = Object.keys(groupMap);
-  let groupIdx = 0;
+  const numGroups = groupNames.length;
+  
   while (completed < n) {
-    let found = false;
-    for (let gi = 0; gi < groupNames.length; gi++) {
-      const group = groupNames[(groupIdx + gi) % groupNames.length];
+    let selectedIdx = -1;
+    let selectedGroup = "";
+    let minCpuUsage = Infinity;
+    
+    // Find the group with minimum CPU usage that has available processes
+    for (const group of groupNames) {
       const indices = groupMap[group];
-      for (let idx of indices) {
+      let hasAvailable = false;
+      
+      for (const idx of indices) {
         if (!isDone[idx] && processes[idx].arrival <= time && rem[idx] > 0) {
-          gantt.push({ name: processes[idx].name, start: time, end: time + 1 });
-          rem[idx]--;
-          time++;
-          if (rem[idx] === 0) {
-            isDone[idx] = true;
-            completed++;
-            finish[idx] = time;
-            tat[idx] = finish[idx] - processes[idx].arrival;
-            wt[idx] = tat[idx] - processes[idx].burst;
-            totalTAT += tat[idx];
-            totalWT += wt[idx];
-          }
-          found = true;
-          groupIdx = (groupIdx + gi + 1) % groupNames.length;
+          hasAvailable = true;
           break;
         }
       }
-      if (found) break;
+      
+      if (hasAvailable && groupCpuUsage[group] < minCpuUsage) {
+        minCpuUsage = groupCpuUsage[group];
+        selectedGroup = group;
+      }
     }
-    if (!found) time++;
+    
+    if (selectedGroup === "") {
+      time++;
+      continue;
+    }
+    
+    // Within the selected group, pick the first available process (FCFS within group)
+    const indices = groupMap[selectedGroup];
+    for (const idx of indices) {
+      if (!isDone[idx] && processes[idx].arrival <= time && rem[idx] > 0) {
+        selectedIdx = idx;
+        break;
+      }
+    }
+    
+    if (selectedIdx === -1) {
+      time++;
+      continue;
+    }
+    
+    // Execute one time unit
+    gantt.push({ name: processes[selectedIdx].name, start: time, end: time + 1 });
+    rem[selectedIdx]--;
+    time++;
+    groupCpuUsage[selectedGroup]++;
+    
+    if (rem[selectedIdx] === 0) {
+      isDone[selectedIdx] = true;
+      completed++;
+      finish[selectedIdx] = time;
+      tat[selectedIdx] = finish[selectedIdx] - processes[selectedIdx].arrival;
+      wt[selectedIdx] = tat[selectedIdx] - processes[selectedIdx].burst;
+      totalTAT += tat[selectedIdx];
+      totalWT += wt[selectedIdx];
+    }
   }
+  
   return {
     results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i] })),
     avgTAT: (totalTAT / n).toFixed(2),

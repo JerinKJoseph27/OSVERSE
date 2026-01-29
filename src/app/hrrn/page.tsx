@@ -29,23 +29,30 @@ function calculateHRRN(processes: Process[]): SchedulingResult {
   let gantt: GanttEntry[] = [];
   let totalTAT = 0, totalWT = 0;
   let results = Array(n);
+  
   while (completed < n) {
     let idx = -1;
     let maxRR = -1;
+    let earliestArrival = Infinity;
+    
+    // Find process with highest response ratio (FCFS as tie-breaker)
     for (let i = 0; i < n; i++) {
       if (!isDone[i] && processes[i].arrival <= time) {
         const wt = time - processes[i].arrival;
         const rr = (wt + processes[i].burst) / processes[i].burst;
-        if (rr > maxRR) {
+        if (rr > maxRR || (rr === maxRR && processes[i].arrival < earliestArrival)) {
           maxRR = rr;
+          earliestArrival = processes[i].arrival;
           idx = i;
         }
       }
     }
+    
     if (idx === -1) {
       time++;
       continue;
     }
+    
     const start = time;
     time += processes[idx].burst;
     const finish = time;
@@ -58,6 +65,7 @@ function calculateHRRN(processes: Process[]): SchedulingResult {
     isDone[idx] = true;
     completed++;
   }
+  
   return {
     results,
     avgTAT: (totalTAT / n).toFixed(2),

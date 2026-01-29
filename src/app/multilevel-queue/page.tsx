@@ -25,6 +25,7 @@ interface SchedulingResult {
 
 function calculateMultilevelQueue(processes: Process[]): SchedulingResult {
   // System queue (0) has higher priority than user queue (1)
+  // Within same queue level, use FCFS (arrival time order)
   let time = 0;
   let completed = 0;
   let n = processes.length;
@@ -32,21 +33,37 @@ function calculateMultilevelQueue(processes: Process[]): SchedulingResult {
   let gantt: GanttEntry[] = [];
   let totalTAT = 0, totalWT = 0;
   let results = Array(n);
+  
   while (completed < n) {
     let idx = -1;
     let minQueue = 2;
+    let earliestArrival = Infinity;
+    
+    // First, find the highest priority queue with available processes
+    for (let i = 0; i < n; i++) {
+      if (!isDone[i] && processes[i].arrival <= time && processes[i].queue !== undefined) {
+        if (processes[i].queue! < minQueue) {
+          minQueue = processes[i].queue!;
+        }
+      }
+    }
+    
+    // Then, among processes in that queue, pick the one with earliest arrival (FCFS)
     for (let i = 0; i < n; i++) {
       if (!isDone[i] && processes[i].arrival <= time && 
           processes[i].queue !== undefined && 
-          processes[i].queue! < minQueue) {
-        minQueue = processes[i].queue!;
+          processes[i].queue! === minQueue &&
+          processes[i].arrival < earliestArrival) {
+        earliestArrival = processes[i].arrival;
         idx = i;
       }
     }
+    
     if (idx === -1) {
       time++;
       continue;
     }
+    
     const start = time;
     time += processes[idx].burst;
     const finish = time;
@@ -59,6 +76,7 @@ function calculateMultilevelQueue(processes: Process[]): SchedulingResult {
     isDone[idx] = true;
     completed++;
   }
+  
   return {
     results,
     avgTAT: (totalTAT / n).toFixed(2),

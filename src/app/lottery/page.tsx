@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import SchedulingTemplate from "@/components/SchedulingTemplate";
 import { Input } from "@/components/ui/input";
 
@@ -38,25 +38,41 @@ function calculateLottery(processes: Process[]): SchedulingResult {
   let tat = Array(n).fill(0);
   let wt = Array(n).fill(0);
   let totalTAT = 0, totalWT = 0;
+  
+  // Use a seeded random number generator for deterministic results
+  let seed = 12345;
+  const seededRandom = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+  
   while (completed < n) {
     // Only consider arrived and not finished processes
     let candidates = [];
     let tickets = [];
+    
     for (let i = 0; i < n; i++) {
       if (!isDone[i] && processes[i].arrival <= time && rem[i] > 0) {
         candidates.push(i);
-        for (let t = 0; t < (processes[i].tickets || 1); t++) tickets.push(i);
+        const numTickets = processes[i].tickets || 1;
+        for (let t = 0; t < numTickets; t++) {
+          tickets.push(i);
+        }
       }
     }
+    
     if (candidates.length === 0) {
       time++;
       continue;
     }
-    // Randomly pick a ticket (simulate fairness)
-    let idx = tickets[Math.floor(Math.random() * tickets.length)];
+    
+    // Pick a random ticket (deterministic with seeded random)
+    let idx = tickets[Math.floor(seededRandom() * tickets.length)];
+    
     gantt.push({ name: processes[idx].name, start: time, end: time + 1 });
     rem[idx]--;
     time++;
+    
     if (rem[idx] === 0) {
       isDone[idx] = true;
       completed++;
@@ -67,6 +83,7 @@ function calculateLottery(processes: Process[]): SchedulingResult {
       totalWT += wt[idx];
     }
   }
+  
   return {
     results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i] })),
     avgTAT: (totalTAT / n).toFixed(2),
@@ -85,14 +102,6 @@ export default function LotteryPage() {
 
   const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
   const [tickets, setTickets] = useState("");
-  const [schedulingResult, setSchedulingResult] = useState<SchedulingResult | null>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  // Only run random calculations on the client side
-  useEffect(() => {
-    setIsClient(true);
-    setSchedulingResult(calculateLottery(processes));
-  }, [processes]);
 
   const colorScheme = {
     primary: "text-indigo-700",
@@ -118,27 +127,15 @@ export default function LotteryPage() {
     setTickets("");
   };
 
-  // Only render the template when we have client-side results
-  if (!isClient || !schedulingResult) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-blue-50 to-purple-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
-          <p>Preparing lottery scheduling visualization...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <SchedulingTemplate
       title="Lottery Scheduling"
-      description="Lottery scheduling assigns tickets to processes. At each time unit, a random ticket is drawn and the corresponding process runs. More tickets means higher chance to run."
+      description="Lottery scheduling assigns tickets to processes. At each time unit, a random ticket is drawn and the corresponding process runs. More tickets means higher chance to run. Uses deterministic seeded random for consistent educational results."
       algorithm="lottery"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcessesWithTickets}
-      calculateScheduling={(processes: Process[]) => schedulingResult}
+      calculateScheduling={calculateLottery}
       additionalFields={additionalFields}
       defaultProcesses={defaultProcesses}
     />

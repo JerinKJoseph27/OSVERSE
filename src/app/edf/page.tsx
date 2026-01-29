@@ -24,42 +24,68 @@ interface SchedulingResult {
 }
 
 function calculateEDF(processes: Process[]): SchedulingResult {
-  let time = 0;
-  let completed = 0;
+  // EDF is PREEMPTIVE - at each time unit, execute the process with earliest deadline
   let n = processes.length;
+  let time = 0, completed = 0;
+  let rem = processes.map(p => p.burst);
   let isDone = Array(n).fill(false);
+  let finish = Array(n).fill(0);
+  let tat = Array(n).fill(0);
+  let wt = Array(n).fill(0);
   let gantt: GanttEntry[] = [];
+  let last = -1;
   let totalTAT = 0, totalWT = 0;
-  let results = Array(n);
+  
   while (completed < n) {
     let idx = -1;
     let minDeadline = Infinity;
+    
+    // Find process with earliest deadline among arrived, unfinished processes
     for (let i = 0; i < n; i++) {
       if (!isDone[i] && processes[i].arrival <= time && 
           processes[i].deadline !== undefined && 
+          rem[i] > 0 &&
           processes[i].deadline! < minDeadline) {
         minDeadline = processes[i].deadline!;
         idx = i;
       }
     }
+    
     if (idx === -1) {
       time++;
       continue;
     }
-    const start = time;
-    time += processes[idx].burst;
-    const finish = time;
-    const tat = finish - processes[idx].arrival;
-    const wt = tat - processes[idx].burst;
-    totalTAT += tat;
-    totalWT += wt;
-    gantt.push({ name: processes[idx].name, start, end: finish });
-    results[idx] = { ...processes[idx], finish, tat, wt };
-    isDone[idx] = true;
-    completed++;
+    
+    // If we switch to a different process, start a new gantt entry
+    if (last !== idx) {
+      gantt.push({ name: processes[idx].name, start: time, end: time + 1 });
+    }
+    
+    // Execute for 1 time unit
+    rem[idx]--;
+    time++;
+    
+    if (rem[idx] === 0) {
+      // Process completed
+      isDone[idx] = true;
+      completed++;
+      finish[idx] = time;
+      tat[idx] = finish[idx] - processes[idx].arrival;
+      wt[idx] = tat[idx] - processes[idx].burst;
+      totalTAT += tat[idx];
+      totalWT += wt[idx];
+    }
+    
+    // Update the end time of current gantt entry
+    if (gantt.length > 0) {
+      gantt[gantt.length - 1].end = time;
+    }
+    
+    last = idx;
   }
+  
   return {
-    results,
+    results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i] })),
     avgTAT: (totalTAT / n).toFixed(2),
     avgWT: (totalWT / n).toFixed(2),
     gantt,
@@ -104,7 +130,7 @@ export default function EDFPage() {
   return (
     <SchedulingTemplate
       title="Earliest Deadline First (EDF) Scheduling"
-      description="EDF schedules the process with the earliest deadline next. It is a dynamic priority scheduling algorithm used in real-time systems."
+      description="EDF is a preemptive scheduling algorithm that always executes the process with the earliest deadline. At every time unit, if a process with an earlier deadline arrives, it preempts the current process. Used in real-time systems to meet deadlines."
       algorithm="EDF"
       colorScheme={colorScheme}
       processes={processes}

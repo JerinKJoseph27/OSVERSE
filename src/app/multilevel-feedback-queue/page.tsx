@@ -37,40 +37,42 @@ function calculateMLFQ(processes: Process[], quantum: number = 2): SchedulingRes
   let arrived = Array(n).fill(false);
 
   while (completed < n) {
-    // Arrivals
+    // Check for new arrivals
     for (let i = 0; i < n; i++) {
       if (!arrived[i] && processes[i].arrival <= time) {
         queue0.push(i);
         arrived[i] = true;
       }
     }
+    
     let idx = -1;
     let fromQ0 = false;
+    
+    // Q0 has priority over Q1
     if (queue0.length > 0) {
       idx = queue0.shift()!;
       fromQ0 = true;
     } else if (queue1.length > 0) {
       idx = queue1.shift()!;
     }
+    
     if (idx === -1) {
       time++;
       continue;
     }
+    
     if (fromQ0) {
+      // Execute for quantum time or until completion
       let exec = Math.min(quantum, rem[idx]);
       gantt.push({ name: processes[idx].name, start: time, end: time + exec });
       time += exec;
       rem[idx] -= exec;
-      // New arrivals during execution
-      for (let i = 0; i < n; i++) {
-        if (!arrived[i] && processes[i].arrival <= time) {
-          queue0.push(i);
-          arrived[i] = true;
-        }
-      }
+      
       if (rem[idx] > 0) {
-        queue1.push(idx); // Demote to Q1
+        // Not finished, demote to Q1
+        queue1.push(idx);
       } else {
+        // Process completed
         finish[idx] = time;
         tat[idx] = finish[idx] - processes[idx].arrival;
         wt[idx] = tat[idx] - processes[idx].burst;
@@ -78,9 +80,10 @@ function calculateMLFQ(processes: Process[], quantum: number = 2): SchedulingRes
         completed++;
       }
     } else {
-      // FCFS in Q1
+      // Execute from Q1 (FCFS - run to completion)
       gantt.push({ name: processes[idx].name, start: time, end: time + rem[idx] });
       time += rem[idx];
+      rem[idx] = 0;
       finish[idx] = time;
       tat[idx] = finish[idx] - processes[idx].arrival;
       wt[idx] = tat[idx] - processes[idx].burst;
@@ -88,8 +91,10 @@ function calculateMLFQ(processes: Process[], quantum: number = 2): SchedulingRes
       completed++;
     }
   }
+  
   let totalTAT = tat.reduce((a, b) => a + b, 0);
   let totalWT = wt.reduce((a, b) => a + b, 0);
+  
   return {
     results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i] })),
     avgTAT: (totalTAT / n).toFixed(2),

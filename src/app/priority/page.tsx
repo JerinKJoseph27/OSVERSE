@@ -31,20 +31,30 @@ function calculatePriority(processes: Process[]): SchedulingResult {
   let gantt: GanttEntry[] = [];
   let totalTAT = 0, totalWT = 0;
   let results = Array(n);
+  
   while (completed < n) {
     let idx = -1;
     let minPriority = Infinity;
+    let earliestArrival = Infinity;
+    
+    // Find process with highest priority (lowest number), FCFS as tie-breaker
     for (let i = 0; i < n; i++) {
       const priority = processes[i].priority;
-      if (!isDone[i] && processes[i].arrival <= time && priority !== undefined && priority < minPriority) {
-        minPriority = priority;
-        idx = i;
+      if (!isDone[i] && processes[i].arrival <= time && priority !== undefined) {
+        if (priority < minPriority ||
+            (priority === minPriority && processes[i].arrival < earliestArrival)) {
+          minPriority = priority;
+          earliestArrival = processes[i].arrival;
+          idx = i;
+        }
       }
     }
+    
     if (idx === -1) {
       time++;
       continue;
     }
+    
     const start = time;
     time += processes[idx].burst;
     const finish = time;
@@ -57,6 +67,7 @@ function calculatePriority(processes: Process[]): SchedulingResult {
     isDone[idx] = true;
     completed++;
   }
+  
   return {
     results,
     avgTAT: (totalTAT / n).toFixed(2),

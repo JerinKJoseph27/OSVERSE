@@ -29,19 +29,29 @@ function calculateLJF(processes: Process[]): SchedulingResult {
   let gantt: GanttEntry[] = [];
   let totalTAT = 0, totalWT = 0;
   let results = Array(n);
+  
   while (completed < n) {
     let idx = -1;
     let maxBurst = -1;
+    let earliestArrival = Infinity;
+    
+    // Find process with longest burst time (FCFS as tie-breaker)
     for (let i = 0; i < n; i++) {
-      if (!isDone[i] && processes[i].arrival <= time && processes[i].burst > maxBurst) {
-        maxBurst = processes[i].burst;
-        idx = i;
+      if (!isDone[i] && processes[i].arrival <= time) {
+        if (processes[i].burst > maxBurst ||
+            (processes[i].burst === maxBurst && processes[i].arrival < earliestArrival)) {
+          maxBurst = processes[i].burst;
+          earliestArrival = processes[i].arrival;
+          idx = i;
+        }
       }
     }
+    
     if (idx === -1) {
       time++;
       continue;
     }
+    
     const start = time;
     time += processes[idx].burst;
     const finish = time;
@@ -54,6 +64,7 @@ function calculateLJF(processes: Process[]): SchedulingResult {
     isDone[idx] = true;
     completed++;
   }
+  
   return {
     results,
     avgTAT: (totalTAT / n).toFixed(2),
