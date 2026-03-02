@@ -317,6 +317,9 @@ function createAdvanced3DTextPrimitive(
         addLineSegment(hw, -hh, -hw, -hh, baseX);      // Bottom horizontal
         break;
         
+
+
+        
       case 'T':
         addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
         addLineSegment(0, hh, 0, -hh, baseX);          // Vertical line
