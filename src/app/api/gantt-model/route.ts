@@ -319,11 +319,14 @@ function createAdvanced3DTextPrimitive(
         
 
 
-        
+
       case 'T':
         addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
         addLineSegment(0, hh, 0, -hh, baseX);          // Vertical line
         break;
+
+
+        
         
       case 'U':
         addLineSegment(-hw, hh, -hw, -hh, baseX);      // Left vertical
