@@ -328,6 +328,9 @@ function createAdvanced3DTextPrimitive(
         addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
         break;
         
+
+
+        
       case 'V':
         addLineSegment(-hw, hh, 0, -hh, baseX);        // Left diagonal
         addLineSegment(0, -hh, hw, hh, baseX);         // Right diagonal
